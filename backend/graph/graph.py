@@ -26,11 +26,23 @@ def decide_next_step(state):
 
 
 def grade_generation_grounded_in_documents_and_question(state: GraphState) -> str:
-    print("---CHECK HALLUCINATIONS---")
+    print("---CHECK GENERATION---")
     question = state["question"]
-    documents = state["documents"]
+    documents = state.get("documents", [])
     generation = state["generation"]
 
+    # Si no hay documentos, significa que fue una generación directa
+    if not documents:
+        print("---DIRECT GENERATION, CHECKING ONLY ANSWER RELEVANCE---")
+        score = answer_grader.invoke({"question": question, "generation": generation})
+        if answer_grade := score.binary_score:
+            print("---DECISION: GENERATION ADDRESSES QUESTION---")
+            return "useful"
+        else:
+            print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
+            return "not useful"
+
+    # Si hay documentos, verificar alucinaciones y relevancia
     if state["generation_attempts"] >= 3:
         state["generation"] = (
             generation + 
