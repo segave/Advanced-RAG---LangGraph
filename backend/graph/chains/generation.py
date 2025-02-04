@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from typing import Dict, Any, Optional
+import streamlit as st
 
 class ResponseGenerator:
     """
@@ -14,29 +15,18 @@ class ResponseGenerator:
     Uses LLM to create informative and contextual responses.
     """
     
-    def __init__(
-        self,
-        model_name: str = "gpt-4o-mini",
-        temperature: float = 0,
-        max_tokens: Optional[int] = None
-    ):
-        """
-        Initialize the generator with specific LLM configuration.
-        
-        Args:
-            model_name: Name of the LLM model to use
-            temperature: Temperature setting for generation
-            max_tokens: Maximum tokens in response (None for model default)
-        """
-        self.llm = ChatOpenAI(
-            model=model_name,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
+    def __init__(self, temperature: float = 0):
+        self.temperature = temperature
         self._create_chain()
 
     def _create_chain(self) -> None:
         """Creates the generation chain with the response prompt."""
+        self.llm = ChatOpenAI(
+            model=st.session_state.get("selected_model", "gpt-4o-mini"),
+            temperature=self.temperature
+        )
+        print("MODEL")
+        print(st.session_state.get("selected_model", "gpt-4o-mini"))
         template = """You are a helpful AI assistant. Answer the question based on the provided context and chat history.
 
         Context: {context}

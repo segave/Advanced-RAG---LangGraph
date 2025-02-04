@@ -28,6 +28,8 @@ def main():
     # Main content with RAG chat
     with main_content:
         st.header("RAG Assistant")
+        # Add model selector above the chat
+        render_model_selector(ui)
         render_rag_chat(ui)
 
     # Right sidebar for document upload

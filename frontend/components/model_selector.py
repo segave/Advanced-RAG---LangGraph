@@ -4,7 +4,17 @@ from frontend.ui.factory import UIFactory
 from frontend.ui.interfaces.base import SelectionInterface
 from frontend.ui.interfaces.state import StateInterface
 from frontend.ui.interfaces.markup import MarkupInterface
+from backend.graph.chains.generation import generation_chain
+from backend.graph.chains.retrieval_grader import retrieval_grader
+from backend.graph.chains.hallucination_grader import hallucination_grader
+from backend.graph.chains.entry_classifier import entry_classifier
 
+def reset_chains() -> None:
+    """Reset all chains to use the newly selected model."""
+    generation_chain._create_chain()
+    retrieval_grader._create_chain()
+    hallucination_grader._create_chain()
+    entry_classifier._create_chain()
 
 def render_model_selector(
     ui: Optional[SelectionInterface] = None,
@@ -39,4 +49,7 @@ def render_model_selector(
         )
     
     # Update the session state with the selected model
-    state.set("selected_model", models[selected_model_name]) 
+    new_model = models[selected_model_name]
+    if new_model != state.get("selected_model"):
+        state.set("selected_model", new_model)
+        reset_chains() 

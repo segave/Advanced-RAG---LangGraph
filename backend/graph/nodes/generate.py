@@ -83,12 +83,6 @@ def generate(state: GraphState) -> Dict[str, Any]:
     question = state["question"]
     documents = state.get("documents", [])
     chat_history = state.get("chat_history", [])
-
-    # Log chat history
-    print("---CHAT HISTORY---")
-    for message in chat_history:
-        print(f"Role: {message['role']}, Content: {message['content']}, "
-              f"Timestamp: {message['timestamp']}, Documents: {message['documents_used']}")
     
     # Update chat history and generate response
     ResponseGenerator._add_user_message(chat_history, question)

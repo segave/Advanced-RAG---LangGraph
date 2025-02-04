@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 from langchain.schema import Document
+import streamlit as st
 
 class HallucinationGrade(BaseModel):
     """
@@ -26,19 +27,22 @@ class HallucinationGrader:
     Uses LLM to detect potential hallucinations.
     """
     
-    def __init__(self, model_name: str = "gpt-4o-mini", temperature: float = 0):
+    def __init__(self, temperature: float = 0):
         """
         Initialize the grader with specific LLM configuration.
         
         Args:
-            model_name: Name of the LLM model to use
             temperature: Temperature setting for generation
         """
-        self.llm = ChatOpenAI(model=model_name, temperature=temperature)
+        self.temperature = temperature
         self._create_chain()
 
     def _create_chain(self) -> None:
         """Creates the evaluation chain with the grading prompt."""
+        self.llm = ChatOpenAI(
+            model=st.session_state.get("selected_model", "gpt-4o-mini"),
+            temperature=self.temperature
+        )
         template = """You are an expert fact-checker evaluating if a response is grounded in provided facts.
 
         Facts:

@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from typing import Dict, Any
+import streamlit as st
 
 class DocumentRelevanceGrade(BaseModel):
     """
@@ -25,19 +26,22 @@ class RelevanceGrader:
     Uses LLM to assess semantic and keyword relevance.
     """
     
-    def __init__(self, model_name: str = "gpt-4o-mini", temperature: float = 0):
+    def __init__(self, temperature: float = 0):
         """
         Initialize the grader with specific LLM configuration.
         
         Args:
-            model_name: Name of the LLM model to use
             temperature: Temperature setting for generation
         """
-        self.llm = ChatOpenAI(model=model_name, temperature=temperature)
+        self.temperature = temperature
         self._create_chain()
 
     def _create_chain(self) -> None:
         """Creates the evaluation chain with the grading prompt."""
+        self.llm = ChatOpenAI(
+            model=st.session_state.get("selected_model", "gpt-4o-mini"),
+            temperature=self.temperature
+        )
         template = """You are an expert evaluating document relevance to questions.
 
         Document to evaluate:

@@ -185,23 +185,6 @@ class DocumentIngester:
         split_docs = self.text_splitter.split_documents(documents)
         return self.vector_store.store_documents(split_docs)
 
-# Ejemplo de uso:
-if __name__ == "__main__":
-    # Configurar componentes
-    text_splitter = RecursiveTextSplitter()
-    vector_store = ChromaVectorStore()
-    ingester = DocumentIngester(text_splitter, vector_store)
-    
-    # Ejemplo con URLs
-    urls = [
-        "https://lilianweng.github.io/posts/2023-06-23-agent/",
-        "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
-    ]
-    web_loader = WebLoader(urls)
-    
-    # Procesar documentos
-    ingester.process_documents(web_loader)
-
 def get_document_loader(file_paths: list[str]) -> Union[FileLoader, PDFLoader, DocxLoader]:
     """Determines the appropriate loader based on file extensions"""
     # Group files by extension
