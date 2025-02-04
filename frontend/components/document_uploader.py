@@ -1,6 +1,4 @@
-import streamlit as st
 import os
-import tempfile
 from typing import Optional, Union
 
 from backend.document_processor import (
@@ -16,9 +14,7 @@ from frontend.ui.factory import UIFactory
 from frontend.ui.interfaces.base import UploadInterface, MessagingInterface
 from frontend.ui.interfaces.state import StateInterface
 from frontend.ui.interfaces.markup import MarkupInterface
-from backend.graph.chains.router import refresh_router
 from backend.document_processor.service import document_service
-#from backend.document_processor.config import vector_store
 
 def get_document_loader(file_paths: list[str]) -> Union[FileLoader, PDFLoader]:
     """Determines the appropriate loader based on file extensions"""
@@ -94,9 +90,6 @@ def render_document_uploader(
                     document_loader = get_document_loader(saved_files)
                     # Process the documents
                     ingester.process_documents(document_loader)
-                    
-                # Refresh router with new documents
-                refresh_router()
                 
                 ui.success(f"{len(saved_files)} document(s) successfully ingested!")
                 

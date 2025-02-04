@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
-
 from pprint import pprint
+
+from backend.document_processor.service import document_service
 
 load_dotenv()
 
@@ -9,7 +10,7 @@ from graph.chains.generation import generation_chain
 from graph.chains.hallucination_grader import hallucination_grader, GradeHallucinations
 from graph.chains.router import question_router, RouteQuery
 
-from ingestion import retriever
+retriever = document_service.get_vector_store().get_retriever()
 
 
 def test_retrival_grader_answer_yes() -> None:

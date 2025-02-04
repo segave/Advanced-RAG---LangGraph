@@ -4,7 +4,6 @@ from langgraph.graph import END, StateGraph
 
 from backend.graph.chains.answer_grader import answer_grader
 from backend.graph.chains.hallucination_grader import hallucination_grader
-from backend.graph.chains.router import question_router, RouteQuery
 from backend.graph.consts import RETRIEVE, GRADE_DOCUMENTS, GENERATE, WEBSEARCH
 from backend.graph.nodes import generate, grade_documents, retrieve, web_search
 from backend.graph.state import GraphState
@@ -68,18 +67,6 @@ def grade_generation_grounded_in_documents_and_question(state: GraphState) -> st
     else:
         print(f"---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY (Attempt {state['generation_attempts']}/3)---")
         return "not supported"
-
-
-def route_question(state: GraphState) -> str:
-    print("---ROUTE QUESTION---")
-    question = state["question"]
-    source: RouteQuery = question_router.invoke({"question": question})
-    if source.datasource == WEBSEARCH:
-        print("---ROUTE QUESTION TO WEB SEARCH---")
-        return WEBSEARCH
-    elif source.datasource == "vectorstore":
-        print("---ROUTE QUESTION TO RAG---")
-        return RETRIEVE
 
 
 def decide_entry_point(state: GraphState) -> str:
