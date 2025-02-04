@@ -8,6 +8,7 @@ from backend.graph.chains.router import question_router, RouteQuery
 from backend.graph.consts import RETRIEVE, GRADE_DOCUMENTS, GENERATE, WEBSEARCH
 from backend.graph.nodes import generate, grade_documents, retrieve, web_search
 from backend.graph.state import GraphState
+from backend.graph.chains.entry_classifier import entry_classifier
 
 
 load_dotenv()
@@ -69,6 +70,26 @@ def route_question(state: GraphState) -> str:
         return RETRIEVE
 
 
+def decide_entry_point(state: GraphState) -> str:
+    """Decide whether to search for information or generate directly."""
+    print("---DECIDE ENTRY POINT---")
+    
+    question = state["question"]
+    chat_history = state.get("chat_history", [])
+    
+    decision = entry_classifier.invoke({
+        "question": question,
+        "chat_history": chat_history
+    })
+    
+    if decision.needs_search:
+        print("---DECISION: NEED TO SEARCH FOR INFORMATION---")
+        return RETRIEVE
+    else:
+        print("---DECISION: CAN GENERATE DIRECTLY---")
+        return GENERATE
+
+
 workflow = StateGraph(GraphState)
 
 workflow.add_node(RETRIEVE, retrieve)
@@ -76,7 +97,13 @@ workflow.add_node(GRADE_DOCUMENTS, grade_documents)
 workflow.add_node(GENERATE, generate)
 workflow.add_node(WEBSEARCH, web_search)
 
-workflow.set_entry_point(RETRIEVE)
+workflow.set_conditional_entry_point(
+    decide_entry_point,
+    {
+        GENERATE: GENERATE,
+        RETRIEVE: RETRIEVE,
+    },
+)
 
 workflow.add_edge(RETRIEVE, GRADE_DOCUMENTS)
 

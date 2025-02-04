@@ -12,7 +12,7 @@ def generate(state: GraphState) -> Dict[str, Any]:
     print(f"---GENERATION ATTEMPT {generation_attempts}/3---")
     
     question = state["question"]
-    documents = state["documents"]
+    documents = state.get("documents", [])
     chat_history = state.get("chat_history", [])
 
     print(f"---CHAT HISTORY---")
