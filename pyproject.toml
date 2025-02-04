@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "langgraph-course"
+version = "0.1.0"
+description = ""
+authors = ["Sergio <sergiogalianavelasco@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+beautifulsoup4 = "^4.12.3"
+langchain = "^0.3.14"
+langgraph = "^0.2.64"
+langchainhub = "^0.1.21"
+langchain-community = "^0.3.14"
+tavily-python = "^0.5.0"
+langchain-chroma = "^0.2.0"
+python-dotenv = "^1.0.1"
+black = "^24.10.0"
+isort = "^5.13.2"
+pytest = "^8.3.4"
+langchain-openai = "^0.3.1"
+streamlit = "^1.41.1"
+pypdf = "^5.2.0"
+python-magic-bin = "^0.4.14"
+python-docx = "^1.1.2"
+psutil = "^6.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
