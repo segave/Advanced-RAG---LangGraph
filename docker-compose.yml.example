@@ -1,0 +1,11 @@
+version: '3'
+services:
+  cv-assistant:
+    image: sergiogaliana/cv-assistant-langchain:latest
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=your_openai_api_key
+      - PINECONE_API_KEY=your_pinecone_api_key
+      - INDEX_NAME=your_index_name
+      - NAMESPACE=your_namespace

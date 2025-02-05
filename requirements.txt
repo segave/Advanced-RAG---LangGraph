@@ -1,1 +1,5 @@
-pipenv==2024.4.0
+# Package management
+poetry==1.8.5
+
+# Note: All other dependencies are managed through pyproject.toml
+# Run 'poetry install' to install project dependencies
