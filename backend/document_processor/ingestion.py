@@ -1,3 +1,8 @@
+"""
+Module for document ingestion and processing.
+Handles loading, splitting and storing documents from various sources.
+"""
+
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
@@ -10,6 +15,7 @@ from langchain_community.document_loaders import (
 from langchain_openai import OpenAIEmbeddings
 from typing import List, Any, Union
 import os
+from langchain_core.documents import Document
 from .interfaces import DocumentLoader, TextSplitter, VectorStore
 import docx
 import psutil
@@ -18,18 +24,36 @@ import shutil
 load_dotenv()
 
 class WebLoader(DocumentLoader):
+    """Loads documents from web URLs."""
+    
     def __init__(self, urls: List[str]):
+        """
+        Initialize web loader.
+        
+        Args:
+            urls: List of URLs to load
+        """
         self.urls = urls
 
-    def load(self) -> List[Any]:
+    def load(self) -> List[Document]:
+        """Load documents from URLs."""
         docs = [WebBaseLoader(url).load() for url in self.urls]
         return [item for sublist in docs for item in sublist]
 
 class PDFLoader(DocumentLoader):
+    """Loads documents from PDF files."""
+    
     def __init__(self, pdf_files: List[str]):
+        """
+        Initialize PDF loader.
+        
+        Args:
+            pdf_files: List of PDF file paths
+        """
         self.pdf_files = pdf_files
 
-    def load(self) -> List[Any]:
+    def load(self) -> List[Document]:
+        """Load documents from PDF files."""
         docs = []
         for pdf in self.pdf_files:
             if os.path.exists(pdf):
@@ -38,10 +62,19 @@ class PDFLoader(DocumentLoader):
         return docs
 
 class FileLoader(DocumentLoader):
+    """Loads documents from text files."""
+    
     def __init__(self, text_files: List[str]):
+        """
+        Initialize text file loader.
+        
+        Args:
+            text_files: List of text file paths
+        """
         self.text_files = text_files
 
-    def load(self) -> List[Any]:
+    def load(self) -> List[Document]:
+        """Load documents from text files."""
         docs = []
         for text_file in self.text_files:
             if os.path.exists(text_file):
@@ -50,11 +83,21 @@ class FileLoader(DocumentLoader):
         return docs
 
 class DirectoryDocumentLoader(DocumentLoader):
+    """Loads all documents from a directory."""
+    
     def __init__(self, directory_path: str, glob_pattern: str = "**/*"):
+        """
+        Initialize directory loader.
+        
+        Args:
+            directory_path: Path to directory
+            glob_pattern: Pattern for file matching
+        """
         self.directory_path = directory_path
         self.glob_pattern = glob_pattern
 
-    def load(self) -> List[Any]:
+    def load(self) -> List[Document]:
+        """Load all documents from directory."""
         loader = DirectoryLoader(
             self.directory_path,
             glob=self.glob_pattern,
@@ -63,18 +106,23 @@ class DirectoryDocumentLoader(DocumentLoader):
         return loader.load()
 
 class DocxLoader(DocumentLoader):
-    """Custom loader for DOCX files"""
+    """Loads documents from DOCX files."""
+    
     def __init__(self, docx_files: List[str]):
+        """
+        Initialize DOCX loader.
+        
+        Args:
+            docx_files: List of DOCX file paths
+        """
         self.docx_files = docx_files
 
-    def load(self) -> List[Any]:
-        from langchain_core.documents import Document
+    def load(self) -> List[Document]:
+        """Load documents from DOCX files."""
         docs = []
-        
         for file_path in self.docx_files:
             if os.path.exists(file_path):
                 doc = docx.Document(file_path)
-                # Extract text from paragraphs
                 text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
                 docs.append(Document(
                     page_content=text,
@@ -83,7 +131,16 @@ class DocxLoader(DocumentLoader):
         return docs
 
 class RecursiveTextSplitter(TextSplitter):
+    """Splits documents into smaller chunks recursively."""
+    
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 100):
+        """
+        Initialize text splitter.
+        
+        Args:
+            chunk_size: Size of text chunks
+            chunk_overlap: Overlap between chunks
+        """
         self.splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
@@ -91,7 +148,8 @@ class RecursiveTextSplitter(TextSplitter):
             length_function=len
         )
 
-    def split_documents(self, documents: List[Any]) -> List[Any]:
+    def split_documents(self, documents: List[Document]) -> List[Document]:
+        """Split documents into chunks."""
         return self.splitter.split_documents(documents)
 
 class ChromaVectorStore(VectorStore):
@@ -114,7 +172,7 @@ class ChromaVectorStore(VectorStore):
             ))
         return self._client
 
-    def store_documents(self, documents: List[Any]) -> Any:
+    def store_documents(self, documents: List[Document]) -> Any:
         client = self._get_client()
 
         # Create and return the vectorstore
@@ -171,34 +229,89 @@ class ChromaVectorStore(VectorStore):
             print(f"Error cleaning up vector store: {str(e)}")
 
 class DocumentIngester:
+    """Handles document ingestion workflow."""
+    
     def __init__(
         self,
         text_splitter: TextSplitter,
         vector_store: VectorStore
     ):
+        """
+        Initialize document ingester.
+        
+        Args:
+            text_splitter: Splitter for chunking documents
+            vector_store: Store for document vectors
+        """
         self.text_splitter = text_splitter
         self.vector_store = vector_store
 
     def process_documents(self, document_loader: DocumentLoader) -> Any:
-        """Procesa y almacena los documentos"""
+        """
+        Process and store documents.
+        
+        Args:
+            document_loader: Loader for documents
+            
+        Returns:
+            Stored documents in vector store
+        """
         documents = document_loader.load()
         split_docs = self.text_splitter.split_documents(documents)
         return self.vector_store.store_documents(split_docs)
 
-def get_document_loader(file_paths: list[str]) -> Union[FileLoader, PDFLoader, DocxLoader]:
-    """Determines the appropriate loader based on file extensions"""
+class CombinedLoader(DocumentLoader):
+    """Combines multiple document loaders into one."""
+    
+    def __init__(self, loaders: List[DocumentLoader]):
+        """
+        Initialize combined loader.
+        
+        Args:
+            loaders: List of document loaders to combine
+        """
+        self.loaders = loaders
+
+    def load(self) -> List[Document]:
+        """Load documents from all loaders."""
+        documents = []
+        for loader in self.loaders:
+            documents.extend(loader.load())
+        return documents
+
+def get_document_loader(file_paths: List[str]) -> DocumentLoader:
+    """
+    Get appropriate loader(s) for file types.
+    
+    Args:
+        file_paths: List of file paths
+        
+    Returns:
+        Document loader that can handle all provided files
+    """
+    if not file_paths:
+        raise ValueError("No files provided")
+
     # Group files by extension
     pdf_files = [f for f in file_paths if f.lower().endswith('.pdf')]
     docx_files = [f for f in file_paths if f.lower().endswith('.docx')]
     txt_files = [f for f in file_paths if f.lower().endswith('.txt')]
     
-    if pdf_files and not (docx_files or txt_files):
-        return PDFLoader(pdf_files)
-    elif docx_files and not (pdf_files or txt_files):
-        return DocxLoader(docx_files)
-    elif txt_files and not (pdf_files or docx_files):
-        return FileLoader(txt_files)
-    else:
-        # Si hay una mezcla de tipos, usamos DirectoryLoader
-        directory = os.path.dirname(file_paths[0])
-        return DirectoryDocumentLoader(directory)
+    # Create loaders for each file type
+    loaders = []
+    if pdf_files:
+        loaders.append(PDFLoader(pdf_files))
+    if docx_files:
+        loaders.append(DocxLoader(docx_files))
+    if txt_files:
+        loaders.append(FileLoader(txt_files))
+        
+    if not loaders:
+        raise ValueError(f"Unsupported file type(s). Supported types are: .pdf, .docx, .txt")
+        
+    # If only one loader, return it directly
+    if len(loaders) == 1:
+        return loaders[0]
+        
+    # Otherwise, combine all loaders
+    return CombinedLoader(loaders)

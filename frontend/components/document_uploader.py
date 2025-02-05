@@ -3,36 +3,14 @@ from typing import Optional, Union
 
 from backend.document_processor import (
     DocumentIngester,
-    RecursiveTextSplitter,
-    ChromaVectorStore,
-    FileLoader,
-    PDFLoader,
-    DirectoryDocumentLoader,
-    DocxLoader
+    get_document_loader,
+    ChromaVectorStore
 )
 from frontend.ui.factory import UIFactory
 from frontend.ui.interfaces.base import UploadInterface, MessagingInterface
 from frontend.ui.interfaces.state import StateInterface
 from frontend.ui.interfaces.markup import MarkupInterface
 from backend.document_processor.service import document_service
-
-def get_document_loader(file_paths: list[str]) -> Union[FileLoader, PDFLoader]:
-    """Determines the appropriate loader based on file extensions"""
-    # Group files by extension
-    pdf_files = [f for f in file_paths if f.lower().endswith('.pdf')]
-    text_files = [f for f in file_paths if f.lower().endswith(('.txt'))]
-    docx_files = [f for f in file_paths if f.lower().endswith('.docx')]
-
-    if pdf_files and not text_files and not docx_files:
-        return PDFLoader(pdf_files)
-    elif text_files and not pdf_files and not docx_files:
-        return FileLoader(text_files)
-    elif docx_files and not pdf_files and not text_files:
-        return DocxLoader(docx_files)
-    else:
-        # If there's a mix of file types, use DirectoryLoader
-        directory = os.path.dirname(file_paths[0])
-        return DirectoryDocumentLoader(directory)
 
 def render_document_uploader(
     ui: Optional[Union[UploadInterface, MessagingInterface]] = None,
@@ -62,12 +40,6 @@ def render_document_uploader(
     temp_dir = "temp_docs"
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
-    
-    # Document processor configuration
-    text_splitter = RecursiveTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=100
-    )
     
     # Button to process and ingest the documents
     if ui.button("Ingest Documents"):

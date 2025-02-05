@@ -1,3 +1,8 @@
+"""
+Document processing module initialization.
+Exports main components for document handling.
+"""
+
 from .ingestion import (
     WebLoader,
     PDFLoader,
@@ -6,7 +11,9 @@ from .ingestion import (
     DocxLoader,
     RecursiveTextSplitter,
     ChromaVectorStore,
-    DocumentIngester
+    DocumentIngester,
+    get_document_loader,
+    CombinedLoader
 )
 from .retriever import RetrieverService
 from .interfaces import DocumentLoader, TextSplitter, VectorStore
@@ -23,5 +30,7 @@ __all__ = [
     'DocumentLoader',
     'TextSplitter',
     'VectorStore',
-    'DocxLoader'
+    'DocxLoader',
+    'get_document_loader',
+    'CombinedLoader'
 ] 
