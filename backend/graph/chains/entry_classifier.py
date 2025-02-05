@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 import streamlit as st
+from ..prompts.templates.entry_classifier_template import CLASSIFICATION_TEMPLATE
 
 class EntryClassification(BaseModel):
     """
@@ -42,26 +43,7 @@ class EntryClassifier:
             model=st.session_state.get("selected_model", "gpt-4o-mini"),
             temperature=self.temperature
         )
-        template = """You are deciding whether a question needs information search.
-
-        Question: {question}
-        Chat History: {chat_history}
-
-        Classify if this question:
-        1. Needs information search (True):
-        - Requires specific facts or data
-        - References external information
-        - Needs verification from sources
-        
-        2. Can be answered directly (False):
-        - Is a clarification or follow-up
-        - Can be answered from chat history
-        - Is a general knowledge question
-        - Is about the conversation itself
-
-        Return True if search is needed, False if it can be answered directly."""
-
-        prompt = ChatPromptTemplate.from_template(template)
+        prompt = ChatPromptTemplate.from_template(CLASSIFICATION_TEMPLATE)
         self.chain = prompt | self.llm.with_structured_output(EntryClassification)
 
     def _format_chat_history(self, chat_history: List[Dict[str, Any]]) -> str:

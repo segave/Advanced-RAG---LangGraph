@@ -6,6 +6,7 @@ Provides functionality to evaluate answer relevance and quality.
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
+from ..prompts.templates.answer_grader_template import ANSWER_GRADE_TEMPLATE
 
 class AnswerGrade(BaseModel):
     """
@@ -39,22 +40,8 @@ class AnswerGrader:
 
     def _create_chain(self):
         """Creates the evaluation chain."""
-        template = """You are an expert evaluator assessing how well an answer addresses a question.
 
-        Question: {question}
-        Answer: {generation}
-
-        Evaluate whether the answer directly and adequately addresses the question.
-        Consider:
-        1. Relevance to the question
-        2. Completeness of the response
-        3. Accuracy of information
-
-        Provide your evaluation as:
-        - binary_score: true if answer addresses question, false otherwise
-        """
-
-        prompt = ChatPromptTemplate.from_template(template)
+        prompt = ChatPromptTemplate.from_template(ANSWER_GRADE_TEMPLATE)
         self.chain = prompt | self.llm.with_structured_output(AnswerGrade)
 
     def invoke(self, inputs: dict) -> AnswerGrade:

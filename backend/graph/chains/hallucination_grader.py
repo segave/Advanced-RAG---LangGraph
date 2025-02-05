@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 from langchain.schema import Document
 import streamlit as st
+from ..prompts.templates.hallucination_grader_template import HALLUCINATION_TEMPLATE
 
 class HallucinationGrade(BaseModel):
     """
@@ -43,23 +44,7 @@ class HallucinationGrader:
             model=st.session_state.get("selected_model", "gpt-4o-mini"),
             temperature=self.temperature
         )
-        template = """You are an expert fact-checker evaluating if a response is grounded in provided facts.
-
-        Facts:
-        {documents}
-
-        Response to evaluate:
-        {generation}
-
-        Instructions:
-        1. Compare the response against the provided facts
-        2. Check if all claims are supported by the facts
-        3. Ignore stylistic differences or rephrasing
-        4. Focus on factual accuracy
-
-        Return True if the response is fully grounded in facts, False if it contains unsupported claims."""
-
-        prompt = ChatPromptTemplate.from_template(template)
+        prompt = ChatPromptTemplate.from_template(HALLUCINATION_TEMPLATE)
         self.chain = prompt | self.llm.with_structured_output(HallucinationGrade)
 
     def _format_documents(self, documents: List[Document]) -> str:

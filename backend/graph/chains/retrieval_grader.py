@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from typing import Dict, Any
 import streamlit as st
+from ..prompts.templates.retrieval_grader_template import RELEVANCE_TEMPLATE
 
 class DocumentRelevanceGrade(BaseModel):
     """
@@ -42,29 +43,7 @@ class RelevanceGrader:
             model=st.session_state.get("selected_model", "gpt-4o-mini"),
             temperature=self.temperature
         )
-        template = """You are an expert evaluating document relevance to questions.
-
-        Document to evaluate:
-        {document}
-
-        Question:
-        {question}
-
-        Instructions:
-        1. Check for keyword matches
-        2. Assess semantic relevance
-        3. Consider related concepts
-        4. Look for contextual connections
-
-        A document is relevant if it:
-        - Contains keywords from the question
-        - Has semantically related content
-        - Provides context for the answer
-        - Contains information needed to answer
-
-        Return True if the document is relevant, False otherwise."""
-
-        prompt = ChatPromptTemplate.from_template(template)
+        prompt = ChatPromptTemplate.from_template(RELEVANCE_TEMPLATE)
         self.chain = prompt | self.llm.with_structured_output(DocumentRelevanceGrade)
 
     def invoke(self, inputs: Dict[str, Any]) -> DocumentRelevanceGrade:

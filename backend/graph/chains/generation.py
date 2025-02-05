@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from typing import Dict, Any, Optional
 import streamlit as st
+from ..prompts.templates.generation_template import RESPONSE_TEMPLATE
 
 class ResponseGenerator:
     """
@@ -27,22 +28,7 @@ class ResponseGenerator:
         )
         print("MODEL")
         print(st.session_state.get("selected_model", "gpt-4o-mini"))
-        template = """You are a helpful AI assistant. Answer the question based on the provided context and chat history.
-
-        Context: {context}
-        Chat History: {chat_history}
-        Question: {question}
-
-        Instructions:
-        1. Use the context to ground your response
-        2. Consider chat history for continuity
-        3. Be clear and concise
-        4. If you can't find relevant information, say so
-        5. Don't make up information
-
-        Your response:"""
-
-        prompt = ChatPromptTemplate.from_template(template)
+        prompt = ChatPromptTemplate.from_template(RESPONSE_TEMPLATE)
         self.chain = prompt | self.llm | StrOutputParser()
 
     def invoke(self, inputs: Dict[str, Any]) -> str:
