@@ -134,3 +134,6 @@ ingestion/DOCS/
 # Docker files
 docker-compose.yml
 .dockerignore
+
+# Chroma DB
+.chroma/
